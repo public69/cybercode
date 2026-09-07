@@ -2,779 +2,404 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>سيبركود ︽ CyberCode</title>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+
+    <!-- وسوم المعاينة والصورة المصغرة (Open Graph & Twitter) -->
+    <meta property="og:title" content="سيبركود ︽ CyberCode">
+    <meta property="og:description" content="لعبة التخمين والرموز التفاعلية السايبربنك - تحدى أصدقائك الآن!">
+    <meta property="og:image" content="https://public69.github.io/cybercode/preview.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:type" content="website">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="سيبركود ︽ CyberCode">
+    <meta name="twitter:description" content="لعبة التخمين والرموز التفاعلية السايبربنك - تحدى أصدقائك الآن!">
+    <meta name="twitter:image" content="https://public69.github.io/cybercode/preview.png">
+
+    <!-- مكتبة PeerJS للاتصال P2P -->
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+
     <style>
         :root {
-            --bg-color: #08090d;
-            --panel-bg: #12151e;
-            --card-bg: #1e2430;
-            --red-team: #ff2a5f;
-            --blue-team: #00f0ff;
-            --neutral: #8f9ba8;
-            --assassin: #1a1a1a;
-            --gold: #ffb703;
-            --green-win: #2ec4b6;
-            --text-color: #e0e6ed;
-            --font-family: 'Tajawal', sans-serif;
+            --bg-color: #080b10;
+            --panel-bg: rgba(22, 27, 34, 0.85);
+            --cyan-glow: #00f3ff;
+            --red-glow: #ff0055;
+            --blue-team: #1e90ff;
+            --text-color: #e6edf3;
+            --border-color: #30363d;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-family); -webkit-tap-highlight-color: transparent; }
-        body { background-color: var(--bg-color); color: var(--text-color); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 10px; padding-bottom: 50px; }
-
-        .logo { font-size: 2rem; font-weight: 900; text-align: center; color: #fff; text-shadow: 0 0 10px var(--blue-team); margin-top: 5px; }
-        .sub-logo { font-size: 0.7rem; color: var(--neutral); letter-spacing: 2px; text-align: center; margin-bottom: 10px; }
-
-        .screen { width: 100%; max-width: 1000px; display: none; flex-direction: column; align-items: center; }
-        .screen.active { display: flex; }
-
-        .card-panel { background: rgba(18, 21, 30, 0.95); border: 1px solid rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 16px; width: 100%; max-width: 480px; box-shadow: 0 0 30px rgba(0,0,0,0.8); }
-        .input-group { margin-bottom: 12px; width: 100%; }
-        .input-group label { display: block; margin-bottom: 5px; font-size: 0.85rem; color: var(--neutral); }
-        .input-group input, .input-group select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: #0d0f17; color: #fff; font-size: 0.95rem; outline: none; }
-        
-        .avatar-picker { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
-        .avatar-opt { width: 100%; aspect-ratio: 1; border-radius: 50%; border: 2px solid transparent; cursor: pointer; background: #0d0f17; overflow: hidden; padding: 4px; }
-        .avatar-opt.selected { border-color: var(--blue-team); box-shadow: 0 0 10px var(--blue-team); }
-        .avatar-opt svg { width: 100%; height: 100%; border-radius: 50%; }
-
-        .btn { width: 100%; padding: 10px; border: none; border-radius: 8px; font-weight: bold; font-size: 0.95rem; cursor: pointer; transition: 0.2s; margin-top: 8px; }
-        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-        .btn-blue { background: var(--blue-team); color: #000; box-shadow: 0 0 12px rgba(0,240,255,0.3); }
-        .btn-secondary { background: #252a38; color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; cursor: pointer; }
-        .btn-danger { background: #dc2626; color: #fff; border: none; border-radius: 4px; padding: 2px 6px; font-size: 0.7rem; cursor: pointer; }
-        .btn-star { background: var(--gold); color: #000; border: none; border-radius: 4px; padding: 2px 6px; font-size: 0.7rem; cursor: pointer; font-weight: bold; }
-
-        .teams-lobby { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; margin: 12px 0; }
-        .team-box { background: rgba(0,0,0,0.4); border-radius: 10px; padding: 10px; border-top: 3px solid; }
-        .team-box.red { border-color: var(--red-team); }
-        .team-box.blue { border-color: var(--blue-team); }
-        .role-slot { background: rgba(255,255,255,0.05); padding: 6px; border-radius: 6px; margin-top: 5px; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; }
-
-        .game-layout { display: grid; grid-template-columns: 1fr; gap: 10px; width: 100%; }
-        @media (min-width: 850px) {
-            .game-layout { grid-template-columns: 240px 1fr 240px; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
         }
 
-        .side-panel { background: var(--panel-bg); border-radius: 12px; padding: 10px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 8px; }
-        .side-title { font-size: 0.85rem; font-weight: bold; text-align: center; padding-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        
-        .player-card { display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.3); padding: 6px; border-radius: 8px; font-size: 0.8rem; }
-        .player-info { display: flex; align-items: center; gap: 6px; overflow: hidden; }
-        .player-card .avatar-icon { width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0; }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-bottom: 30px;
+            overflow-x: hidden;
+        }
 
-        .log-box { background: #08090d; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; height: 180px; overflow-y: auto; padding: 8px; font-size: 0.8rem; display: flex; flex-direction: column; gap: 4px; }
-        .log-item { padding: 4px 6px; border-radius: 4px; background: rgba(255,255,255,0.02); }
+        /* شريط الأخبار المتحرك Ticker Bar */
+        .marquee-container {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            border-bottom: 1px solid var(--cyan-glow);
+            overflow: hidden;
+            white-space: nowrap;
+            padding: 8px 0;
+            position: relative;
+        }
 
-        .game-header { width: 100%; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; background: var(--panel-bg); padding: 8px 12px; border-radius: 10px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.05); gap: 8px; }
-        
-        .board { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; width: 100%; }
-        .word-card { background: var(--card-bg); aspect-ratio: 1.3 / 1; border-radius: 6px; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 0.85rem; cursor: pointer; user-select: none; border: 1px solid rgba(255,255,255,0.1); text-align: center; padding: 2px; color: #fff; }
-        @media (min-width: 600px) { .word-card { font-size: 1rem; } }
+        .marquee-text {
+            display: inline-block;
+            padding-left: 100%;
+            animation: marquee 25s linear infinite;
+            color: var(--cyan-glow);
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+        }
 
-        .card-red { background: var(--red-team) !important; color: #fff; }
-        .card-blue { background: var(--blue-team) !important; color: #000; }
-        .card-neutral { background: var(--neutral) !important; color: #000; }
-        .card-assassin { background: var(--assassin) !important; color: var(--red-team); border: 2px solid var(--red-team); }
-        
-        .spymaster-view.card-red { background: transparent !important; border: 2px solid var(--red-team); color: var(--red-team); }
-        .spymaster-view.card-blue { background: transparent !important; border: 2px solid var(--blue-team); color: var(--blue-team); }
-        .spymaster-view.card-neutral { background: transparent !important; border: 2px solid var(--neutral); color: var(--neutral); }
-        .spymaster-view.card-assassin { background: transparent !important; border: 2px solid #ff0000; color: #ff0000; }
+        @keyframes marquee {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(-100%, 0); }
+        }
 
-        .clue-panel { width: 100%; background: var(--panel-bg); padding: 10px; border-radius: 10px; margin-top: 10px; display: flex; gap: 6px; align-items: center; }
-        .clue-panel input, .clue-panel select { padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: #08090d; color: #fff; font-size: 0.85rem; }
+        /* الواجهة الرئيسية */
+        .container {
+            width: 95%;
+            max-width: 1000px;
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+        }
 
-        /* الشريط المباشر الحركة من اليسار إلى اليمين */
-        .ticker-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 35px; background: #0d0f17; border-top: 1px solid rgba(0, 240, 255, 0.3); overflow: hidden; display: flex; align-items: center; z-index: 9999; }
-        .ticker-text { white-space: nowrap; display: inline-block; animation: marquee 18s linear infinite; color: var(--blue-team); font-size: 0.85rem; font-weight: bold; }
-        @keyframes marquee { 0% { transform: translate(-100%, 0); } 100% { transform: translate(100%, 0); } }
+        @media (max-width: 850px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .main-panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.1);
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .panel-box {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 15px;
+        }
+
+        h1, h2, h3 {
+            color: var(--cyan-glow);
+            text-shadow: 0 0 8px rgba(0, 243, 255, 0.5);
+            margin-bottom: 12px;
+        }
+
+        /* شبكة اللعبة 5x5 */
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .card {
+            aspect-ratio: 1;
+            background: #161b22;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            padding: 5px;
+            user-select: none;
+        }
+
+        .card:hover {
+            border-color: var(--cyan-glow);
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .card.revealed-blue { background: #1f6beb !important; color: #fff; }
+        .card.revealed-red { background: #da3633 !important; color: #fff; }
+        .card.revealed-neutral { background: #8b949e !important; color: #fff; }
+        .card.revealed-assassin { background: #000 !important; color: var(--red-glow); border-color: var(--red-glow); }
+
+        /* الأزرار والمدخلات */
+        .btn {
+            background: #21262d;
+            color: var(--cyan-glow);
+            border: 1px solid var(--cyan-glow);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+            width: 100%;
+            margin-top: 5px;
+        }
+
+        .btn:hover {
+            background: var(--cyan-glow);
+            color: #000;
+            box-shadow: 0 0 10px var(--cyan-glow);
+        }
+
+        .btn-danger {
+            color: var(--red-glow);
+            border-color: var(--red-glow);
+        }
+
+        .btn-danger:hover {
+            background: var(--red-glow);
+            color: #fff;
+            box-shadow: 0 0 10px var(--red-glow);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px;
+            background: #0d1117;
+            border: 1px solid var(--border-color);
+            color: #fff;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+
+        /* قائمة اللاعبين والأدوار الإدارية */
+        .player-list {
+            list-style: none;
+        }
+
+        .player-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .player-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .badge {
+            color: #ffd700;
+            font-size: 0.9rem;
+        }
+
+        /* سجل الأحداث */
+        .game-log {
+            height: 150px;
+            overflow-y: auto;
+            background: #0d1117;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 8px;
+            font-size: 0.85rem;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .log-entry {
+            color: #8b949e;
+        }
+
+        .log-entry.blue { color: #58a6ff; }
+        .log-entry.red { color: #ff7b72; }
+        .log-entry.system { color: #7ee787; }
     </style>
 </head>
 <body>
 
-    <div class="logo">سيبركود ︽</div>
-    <div class="sub-logo">CYBERCODE</div>
-
-    <div id="login-screen" class="screen active">
-        <div class="card-panel">
-            <div class="input-group">
-                <label>اختر صوّرتك الرمزية (اختياري)</label>
-                <div class="avatar-picker" id="avatar-selector"></div>
-            </div>
-            <div class="input-group">
-                <label>اسم اللاعب</label>
-                <input type="text" id="player-name" placeholder="أدخل اسمك هنا...">
-            </div>
-            <button class="btn btn-blue" id="create-btn" onclick="createRoom()">إنشاء غرفة جديدة</button>
-            <div style="text-align: center; margin: 8px 0; color: var(--neutral); font-size: 0.8rem;">أو</div>
-            <div class="input-group">
-                <input type="text" id="room-id-input" placeholder="رمز الغرفة (Join Code)">
-            </div>
-            <button class="btn btn-secondary" id="join-btn" style="width:100%;" onclick="joinRoom()">انضمام للغرفة</button>
+    <!-- شريط الأخبار -->
+    <div class="marquee-container">
+        <div class="marquee-text">
+            ︽ CYBERCODE SYSTEM ONLINE ︽ نظام التشفير التفاعلي جاهز ︽ اختر فريقك وقم بفك الشفرة بحذر ︽ تجنب البطاقة القاتلة ︽
         </div>
     </div>
 
-    <div id="lobby-screen" class="screen">
-        <div class="card-panel">
-            <h3 style="text-align:center;">رمز الغرفة: <span id="room-code-display" style="color:var(--blue-team)">-</span></h3>
-            
-            <div id="host-controls" style="margin-top: 10px; display:none;">
-                <label style="font-size: 0.8rem; color: var(--neutral);">إعدادات المؤقت والغرفة (للمتحكمين ⭐️):</label>
-                <div style="display:flex; gap:6px; margin-top:4px;">
-                    <select id="timer-speed-select" style="flex:2; padding: 6px; background:#0d0f17; color:#fff; border-radius:6px; border: 1px solid rgba(255,255,255,0.2);">
-                        <option value="none">بدون مؤقت (مفتوح)</option>
-                        <option value="90">سريع (90 ثانية)</option>
-                        <option value="150">متوسط (150 ثانية)</option>
-                        <option value="240">طبيعي (240 ثانية)</option>
-                    </select>
-                    <button id="lock-room-btn" class="btn-secondary" style="flex:1; padding:6px; font-size:0.75rem;" onclick="toggleLockRoom()">إغلاق الغرفة 🔒</button>
-                </div>
+    <div class="container">
+        <!-- اللوحة الرئيسية والشبكة -->
+        <div class="main-panel">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h1>سيبركود ︽ CyberCode</h1>
+                <div id="timer-display" style="font-family: monospace; font-size: 1.2rem; color: var(--cyan-glow);">--:--</div>
             </div>
 
-            <div class="teams-lobby">
-                <div class="team-box red">
-                    <h4 style="color:var(--red-team); font-size:0.9rem;">الفريق الأحمر</h4>
-                    <div class="role-slot">
-                        <span>المُلمّح (1)</span>
-                        <button class="btn-secondary" style="padding:2px 6px; font-size:0.75rem;" onclick="claimRole('red', 'spy')">انضمام</button>
-                    </div>
-                    <div id="red-spy-name" style="font-size:0.75rem; color:var(--neutral); margin-top:3px;">-</div>
-                    <div class="role-slot">
-                        <span>اللاعبين (8)</span>
-                        <button class="btn-secondary" style="padding:2px 6px; font-size:0.75rem;" onclick="claimRole('red', 'op')">انضمام</button>
-                    </div>
-                    <div id="red-ops-names" style="font-size:0.75rem; color:var(--neutral); margin-top:3px;">-</div>
-                </div>
-
-                <div class="team-box blue">
-                    <h4 style="color:var(--blue-team); font-size:0.9rem;">الفريق الأزرق</h4>
-                    <div class="role-slot">
-                        <span>المُلمّح (1)</span>
-                        <button class="btn-secondary" style="padding:2px 6px; font-size:0.75rem;" onclick="claimRole('blue', 'spy')">انضمام</button>
-                    </div>
-                    <div id="blue-spy-name" style="font-size:0.75rem; color:var(--neutral); margin-top:3px;">-</div>
-                    <div class="role-slot">
-                        <span>اللاعبين (8)</span>
-                        <button class="btn-secondary" style="padding:2px 6px; font-size:0.75rem;" onclick="claimRole('blue', 'op')">انضمام</button>
-                    </div>
-                    <div id="blue-ops-names" style="font-size:0.75rem; color:var(--neutral); margin-top:3px;">-</div>
-                </div>
+            <!-- شبكة البطاقات 5x5 -->
+            <div class="game-grid" id="grid">
+                <!-- يتم إنشاؤها عبر JavaScript -->
             </div>
 
-            <button id="start-btn" class="btn btn-blue" style="display:none;" disabled onclick="startGame()">بدء اللعبة ︽</button>
-            <div id="start-error" style="color:var(--red-team); font-size:0.75rem; text-align:center; margin-top:5px;">يلزم وجود مُلمّح ولاعب واحد على الأقل لكل فريق لبدء اللعبة</div>
-        </div>
-    </div>
-
-    <div id="game-screen" class="screen">
-        <div class="game-header">
-            <div>
-                <span id="turn-indicator" style="font-weight:bold; font-size:1rem;">دور: -</span>
-                <div style="font-size:0.75rem; color:var(--neutral); margin-top:2px;">
-                    الأحمر: <span id="red-count" style="color:var(--red-team); font-weight:bold;">0</span> | 
-                    الأزرق: <span id="blue-count" style="color:var(--blue-team); font-weight:bold;">0</span>
-                </div>
-            </div>
-            <div style="font-size: 1.1rem; font-weight: bold; color: var(--gold);" id="timer-display">--:--</div>
-            <div id="host-game-controls" style="display:none; gap:4px; flex-wrap:wrap;">
-                <button class="btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="endTurn()">إنهاء الدور</button>
-                <button class="btn-secondary" style="padding:4px 8px; font-size:0.75rem; background:#8a2be2;" onclick="refreshWords()">تحديث الكلمات 🔄</button>
-                <button class="btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="resetGame(false)">إعادة اللعبة</button>
-                <button class="btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="resetGame(true)">تغيير الفرق</button>
+            <!-- أدوات إعطاء التلميح -->
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <input type="text" id="clue-word" placeholder="كلمة التلميح..." style="flex: 2;">
+                <select id="clue-count" style="flex: 1;">
+                    <option value="1">1 (+1)</option>
+                    <option value="2">2 (+1)</option>
+                    <option value="3">3 (+1)</option>
+                    <option value="4">4 (+1)</option>
+                    <option value="5">5 (+1)</option>
+                </select>
+                <button class="btn" style="flex: 1; margin-top: 0;" onclick="sendClue()">إرسال</button>
             </div>
         </div>
 
-        <div class="game-layout">
-            <div class="side-panel">
-                <div class="side-title" style="color:var(--blue-team)">الفريق الأزرق</div>
-                <div id="blue-team-list" style="display:flex; flex-direction:column; gap:6px;"></div>
-            </div>
-
-            <div style="display:flex; flex-direction:column; gap:10px;">
-                <div id="active-clue-area" style="display:none; padding:8px; background:rgba(0,240,255,0.05); border:1px dashed var(--blue-team); border-radius:8px; text-align:center; font-weight:bold; font-size:0.95rem;"></div>
-                
-                <div class="board" id="board"></div>
-                <div id="win-banner" style="display:none; padding:30px; background:var(--green-win); color:#000; border-radius:12px; text-align:center; font-size:1.4rem; font-weight:900;"></div>
-
-                <div class="clue-panel" id="clue-panel" style="display:none;">
-                    <input type="text" id="clue-word" placeholder="التلميح (كلمة واحدة)..." style="flex:2;">
-                    <select id="clue-count" style="flex:1;">
-                        <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
-                    </select>
-                    <button class="btn btn-blue" style="width:auto; margin:0; padding:8px 12px; font-size:0.8rem;" onclick="submitClue()">إرسال</button>
+        <!-- القائمة الجانبية والإدارة -->
+        <div class="sidebar">
+            <!-- الاتصال والغرف -->
+            <div class="panel-box">
+                <h3>الغرفة والاتصال</h3>
+                <button class="btn" onclick="createRoom()">إنشاء غرفة جديدة</button>
+                <div style="margin-top: 8px;">
+                    <input type="text" id="join-id" placeholder="رمز الغرفة للإنضمام...">
+                    <button class="btn" onclick="joinRoom()">إنضمام</button>
                 </div>
+                <div id="room-status" style="margin-top: 8px; font-size: 0.8rem; color: #7ee787;">غير متصل</div>
+            </div>
 
-                <div style="margin-top:5px;">
-                    <div style="font-size:0.8rem; color:var(--neutral); margin-bottom:4px; font-weight:bold;">تفاصيل وحركات اللعب (GAME LOG):</div>
-                    <div class="log-box" id="game-log"></div>
+            <!-- قائمة المتواجدين والإدارة -->
+            <div class="panel-box">
+                <h3>اللاعبين الأدمن <span id="admin-badge" class="badge"></span></h3>
+                <ul class="player-list" id="player-list">
+                    <li class="player-item">
+                        <div class="player-info">
+                            <span class="badge">⭐️</span>
+                            <span>اللاعب (أنت)</span>
+                        </div>
+                        <span style="font-size: 0.8rem; color: var(--cyan-glow);">القائد</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- سجل الأحداث -->
+            <div class="panel-box">
+                <h3>سجل الأحداث</h3>
+                <div class="game-log" id="game-log">
+                    <div class="log-entry system">[النظام] مرحباً بك في CyberCode!</div>
                 </div>
             </div>
 
-            <div class="side-panel">
-                <div class="side-title" style="color:var(--red-team)">الفريق الأحمر</div>
-                <div id="red-team-list" style="display:flex; flex-direction:column; gap:6px;"></div>
+            <!-- إعدادات الإدارة (المضيف) -->
+            <div class="panel-box" id="admin-controls">
+                <h3>إعدادات التحكم</h3>
+                <select id="timer-select">
+                    <option value="none">بدون مؤقت</option>
+                    <option value="90">90 ثانية</option>
+                    <option value="150">150 ثانية</option>
+                    <option value="240">240 ثانية</option>
+                </select>
+                <button class="btn btn-danger" onclick="toggleLockRoom()">قفل / فتح الغرفة</button>
             </div>
-        </div>
-    </div>
-
-    <div id="ticker-bar" class="ticker-bar">
-        <div class="ticker-text">
-            قام بتصميم هذا الموقع بالكامل سعادة العريف 𝗣𝗨𝗕𝗟𝗜𝗖، مع أجمل التحيات.. سيظهر في هذا الشريط اسبوعيا كنق التلميح (: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         </div>
     </div>
 
     <script>
-        const AVATARS = [
-            `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#00f0ff"/><circle cx="50" cy="35" r="18" fill="#08090d"/><path d="M 20 85 C 20 60, 80 60, 80 85 Z" fill="#08090d"/></svg>`,
-            `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#ff2a5f"/><circle cx="50" cy="35" r="18" fill="#08090d"/><path d="M 20 85 C 20 60, 80 60, 80 85 Z" fill="#08090d"/></svg>`,
-            `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#ffb703"/><circle cx="50" cy="35" r="18" fill="#08090d"/><path d="M 20 85 C 20 60, 80 60, 80 85 Z" fill="#08090d"/></svg>`,
-            `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#2ec4b6"/><circle cx="50" cy="35" r="18" fill="#08090d"/><path d="M 20 85 C 20 60, 80 60, 80 85 Z" fill="#08090d"/></svg>`,
-            `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#8a2be2"/><circle cx="50" cy="35" r="18" fill="#08090d"/><path d="M 20 85 C 20 60, 80 60, 80 85 Z" fill="#08090d"/></svg>`,
-            `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#ff70a6"/><circle cx="50" cy="35" r="18" fill="#08090d"/><path d="M 20 85 C 20 60, 80 60, 80 85 Z" fill="#08090d"/></svg>`,
-            `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#70e000"/><circle cx="50" cy="35" r="18" fill="#08090d"/><path d="M 20 85 C 20 60, 80 60, 80 85 Z" fill="#08090d"/></svg>`,
-            `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#ff9e00"/><circle cx="50" cy="35" r="18" fill="#08090d"/><path d="M 20 85 C 20 60, 80 60, 80 85 Z" fill="#08090d"/></svg>`
+        // التهيئة الأساسية للعبة
+        const wordsList = [
+            "تشفير", "سيرفر", "شبكة", "معالج", "ذاكرة", 
+            "قاعدة", "حماية", "كود", "برمجية", "ملف",
+            "بروتوكول", "شاشة", "مفتاح", "بيانات", "نظام",
+            "صمام", "قرص", "اتصال", "منفذ", "بوابة",
+            "سحابي", "خوارزمية", "شفرة", "رابط", "مستكشف"
         ];
 
-        const SINGLE_WORDS = [
-            "صقر", "صحراء", "برج", "شمس", "قمر", "سيارة", "حاسوب", "شفرة", "شبكة", "نجم",
-            "سيف", "قلعة", "مطر", "بحر", "طائرة", "روبوت", "ذهب", "ماس", "زيتون", "نخلة",
-            "ساعة", "مفتاح", "جبل", "موج", "ضوء", "ظلال", "عاصفة", "درع", "محرك", "طاقة",
-            "أسد", "غيمة", "رعد", "برق", "نهر", "رمال", "كوكب", "مجرة", "فضاء", "سفينة",
-            "قطار", "محطة", "مطار", "جسر", "طريق", "خريطة", "بوصلة", "منظار", "قاطرة", "تاج"
-        ];
+        let peer = new Peer();
+        let currentRoomId = null;
 
-        let peer = null, conn = null, isHost = false;
-        let myId, myName, myAvatarIndex = null, myTeam = null, myRole = null;
-        let gameState = {
-            players: {},
-            board: [],
-            currentTurn: 'red',
-            clue: null,
-            timerMode: 'none',
-            timer: 0,
-            status: 'lobby',
-            winner: null,
-            redLeft: 9,
-            blueLeft: 8,
-            logs: [],
-            isLocked: false
-        };
-
-        let timerInterval = null;
-
-        window.onload = () => {
-            const container = document.getElementById('avatar-selector');
-            AVATARS.forEach((svg, idx) => {
-                const div = document.createElement('div');
-                div.className = 'avatar-opt';
-                div.innerHTML = svg;
-                div.onclick = () => {
-                    document.querySelectorAll('.avatar-opt').forEach(a => a.classList.remove('selected'));
-                    div.classList.add('selected');
-                    myAvatarIndex = idx;
-                };
-                container.appendChild(div);
-            });
-        };
-
-        function showScreen(id) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
+        // بناء الشبكة 5x5 عند التشغيل
+        function initGrid() {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+            for (let i = 0; i < 25; i++) {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerText = wordsList[i] || `رمز ${i+1}`;
+                card.onclick = () => selectCard(card, i);
+                grid.appendChild(card);
+            }
         }
 
-        function getPeerOptions() {
-            return { debug: 1, config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] } };
+        function selectCard(card, index) {
+            addLog(`تم النقر على البطاقة: ${card.innerText}`, 'blue');
+            card.classList.add('revealed-blue');
         }
 
-        function isController(id = myId) {
-            return gameState.players[id]?.isHost || gameState.players[id]?.isCoHost;
+        function addLog(msg, type = 'system') {
+            const log = document.getElementById('game-log');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.innerText = `[${new Date().toLocaleTimeString('ar-SA')}] ${msg}`;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
         }
 
         function createRoom() {
-            myName = document.getElementById('player-name').value.trim();
-            if(!myName) return alert("الرجاء إدخال اسمك أولاً");
-            if(myAvatarIndex === null) myAvatarIndex = Math.floor(Math.random() * AVATARS.length);
-
-            document.getElementById('create-btn').innerText = "جاري إنشاء الغرفة...";
-            document.getElementById('create-btn').disabled = true;
-
-            isHost = true;
-            const customId = "cb-" + Math.floor(10000 + Math.random() * 90000);
-            peer = new Peer(customId, getPeerOptions());
-
+            peer = new Peer();
             peer.on('open', (id) => {
-                myId = id;
-                document.getElementById('room-code-display').innerText = id;
-                
-                gameState.players[id] = { name: myName, avatar: myAvatarIndex, team: null, role: null, isHost: true, isCoHost: false };
-                addLog("تم إنشاء الغرفة بنجاح وبانتظار اللاعبين.");
-                showScreen('lobby-screen');
-                updateUI();
-            });
-
-            peer.on('connection', (c) => {
-                if(gameState.isLocked) {
-                    c.on('open', () => c.send({ type: 'KICK', reason: 'الغرفة مغلقة من قبل التحكم!' }));
-                    return;
-                }
-                c.on('data', (data) => handleNetworkData(data, c));
+                currentRoomId = id;
+                document.getElementById('room-status').innerText = 'تم إنشاء الغرفة: ' + id;
+                addLog(`تم إنشاء الغرفة برمز: ${id}`, 'system');
             });
         }
 
         function joinRoom() {
-            myName = document.getElementById('player-name').value.trim();
-            const targetCode = document.getElementById('room-id-input').value.trim();
-            if(!myName || !targetCode) return alert("يرجى إدخال اسمك ورمز الغرفة");
-            if(myAvatarIndex === null) myAvatarIndex = Math.floor(Math.random() * AVATARS.length);
-
-            document.getElementById('join-btn').innerText = "جاري الانضمام...";
-            document.getElementById('join-btn').disabled = true;
-
-            peer = new Peer(getPeerOptions());
-
-            peer.on('open', (id) => {
-                myId = id;
-                conn = peer.connect(targetCode);
-                conn.on('open', () => {
-                    conn.send({ type: 'JOIN', name: myName, avatar: myAvatarIndex });
-                    showScreen('lobby-screen');
-                });
-                conn.on('data', (data) => handleNetworkData(data));
+            const targetId = document.getElementById('join-id').value;
+            if (!targetId) return alert('يرجى إدخال رمز الغرفة');
+            const conn = peer.connect(targetId);
+            conn.on('open', () => {
+                document.getElementById('room-status').innerText = 'متصل بالغرفة: ' + targetId;
+                addLog(`تم الإنضمام بنجاح للغرفة ${targetId}`, 'system');
             });
         }
 
-        function claimRole(team, role) {
-            if(gameState.status === 'playing') return;
-            if(isHost) {
-                applyRoleClaim(peer.id, team, role);
-                broadcastState();
-            } else {
-                conn.send({ type: 'CLAIM_ROLE', team, role });
-            }
-        }
-
-        function applyRoleClaim(playerId, team, role) {
-            if(gameState.players[playerId]) {
-                gameState.players[playerId].team = team;
-                gameState.players[playerId].role = role;
-            }
-        }
-
-        function handleNetworkData(data, connection) {
-            if (isHost) {
-                if (data.type === 'JOIN') {
-                    gameState.players[connection.peer] = { name: data.name, avatar: data.avatar, team: null, role: null, isHost: false, isCoHost: false };
-                    addLog(`انضم اللاعب ${data.name} إلى الغرفة.`);
-                } else if (data.type === 'CLAIM_ROLE') {
-                    applyRoleClaim(connection.peer, data.team, data.role);
-                } else if (data.type === 'SUBMIT_CLUE') {
-                    processClue(data.word, data.count, connection.peer);
-                } else if (data.type === 'SELECT_CARD') {
-                    processCardClick(data.index, connection.peer);
-                } else if (data.type === 'END_TURN') {
-                    if(isController(connection.peer) || gameState.players[connection.peer]?.team === gameState.currentTurn) {
-                        addLog(`تم إنهاء الدور.`);
-                        switchTurn();
-                    }
-                } else if (data.type === 'RESET_GAME') {
-                    if(isController(connection.peer)) {
-                        if(data.toLobby) gameState.status = 'lobby'; else initGame();
-                    }
-                } else if (data.type === 'REFRESH_WORDS') {
-                    if(isController(connection.peer)) refreshWords();
-                } else if (data.type === 'KICK_PLAYER') {
-                    if(isController(connection.peer)) kickPlayer(data.targetId);
-                } else if (data.type === 'TOGGLE_COHOST') {
-                    if(isController(connection.peer)) toggleCoHost(data.targetId);
-                } else if (data.type === 'TOGGLE_LOCK') {
-                    if(isController(connection.peer)) gameState.isLocked = !gameState.isLocked;
-                }
-                broadcastState();
-            } else {
-                if (data.type === 'STATE_UPDATE') {
-                    gameState = data.state;
-                    updateUI();
-                } else if (data.type === 'KICK') {
-                    alert(data.reason || "تم إخراجك من الغرفة من قبل التحكم.");
-                    window.location.reload();
-                }
-            }
-        }
-
-        function broadcastState() {
-            if(!isHost) return;
-            updateUI();
-            if(peer && peer.connections) {
-                Object.keys(peer.connections).forEach(peerId => {
-                    if (peer.connections[peerId][0]) {
-                        peer.connections[peerId][0].send({ type: 'STATE_UPDATE', state: gameState });
-                    }
-                });
-            }
-        }
-
-        function kickPlayer(targetId) {
-            if(!gameState.players[targetId] || gameState.players[targetId].isHost) return;
-            let pName = gameState.players[targetId].name;
-            delete gameState.players[targetId];
-            addLog(`تم طرد اللاعب ${pName} من الغرفة.`);
-            
-            if(peer && peer.connections[targetId] && peer.connections[targetId][0]) {
-                peer.connections[targetId][0].send({ type: 'KICK', reason: 'تم طردك بواسطة المتحكم!' });
-            }
-        }
-
-        function toggleCoHost(targetId) {
-            if(!gameState.players[targetId] || gameState.players[targetId].isHost) return;
-            
-            const currentCoHosts = Object.values(gameState.players).filter(p => p.isCoHost);
-            if(!gameState.players[targetId].isCoHost && currentCoHosts.length >= 1) {
-                alert("لا يمكن إضافة أكثر من متحكمين اثنين (2) في نفس الوقت!");
-                return;
-            }
-
-            gameState.players[targetId].isCoHost = !gameState.players[targetId].isCoHost;
-            let statusText = gameState.players[targetId].isCoHost ? "منح" : "سحب";
-            addLog(`تم ${statusText} صلاحية التحكم ⭐️ للاعب ${gameState.players[targetId].name}.`);
-        }
-
-        function toggleLockRoom() {
-            if(isHost) {
-                gameState.isLocked = !gameState.isLocked;
-                addLog(gameState.isLocked ? "تم إغلاق الغرفة أمام الدخول الجديد." : "تم فتح الغرفة لاستقبال لاعبين.");
-                broadcastState();
-            } else {
-                conn.send({ type: 'TOGGLE_LOCK' });
-            }
-        }
-
-        function addLog(msg, color = null) {
-            const time = new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
-            gameState.logs.unshift({ time, msg, color });
-            if(gameState.logs.length > 30) gameState.logs.pop();
-        }
-
-        function startGame() {
-            if(!isController()) return;
-            gameState.timerMode = document.getElementById('timer-speed-select').value;
-            initGame();
-        }
-
-        function initGame() {
-            let shuffledWords = [...SINGLE_WORDS].sort(() => 0.5 - Math.random()).slice(0, 25);
-            const startingTeam = Math.random() < 0.5 ? 'red' : 'blue';
-            const secondTeam = startingTeam === 'red' ? 'blue' : 'red';
-
-            let types = [
-                ...Array(9).fill(startingTeam),
-                ...Array(8).fill(secondTeam),
-                ...Array(7).fill('neutral'),
-                'assassin'
-            ].sort(() => 0.5 - Math.random());
-
-            gameState.board = shuffledWords.map((word, i) => ({ word, type: types[i], revealed: false }));
-            gameState.currentTurn = startingTeam;
-            gameState.clue = null;
-            gameState.winner = null;
-            gameState.redLeft = types.filter(t => t === 'red').length;
-            gameState.blueLeft = types.filter(t => t === 'blue').length;
-            gameState.status = 'playing';
-
-            addLog(`بدأت اللعبة! الفريق البادئ هو ${startingTeam === 'red' ? 'الأحمر' : 'الأزرق'}.`);
-
-            if(gameState.timerMode !== 'none') {
-                gameState.timer = parseInt(gameState.timerMode);
-                startTimer();
-            } else {
-                clearInterval(timerInterval);
-            }
-            broadcastState();
-        }
-
-        function refreshWords() {
-            if(!isController() || gameState.status !== 'playing') return;
-            if(isHost) {
-                addLog("تم تحديث وتغيير كلمات اللوحة بواسطة التحكم.");
-                initGame();
-            } else {
-                conn.send({ type: 'REFRESH_WORDS' });
-            }
-        }
-
-        function updateUI() {
-            const myPlayerInfo = gameState.players[myId || peer?.id];
-            if(myPlayerInfo) {
-                myTeam = myPlayerInfo.team;
-                myRole = myPlayerInfo.role;
-            }
-
-            const canControl = isController();
-
-            document.getElementById('host-controls').style.display = canControl ? 'block' : 'none';
-            document.getElementById('host-game-controls').style.display = canControl ? 'flex' : 'none';
-            document.getElementById('start-btn').style.display = canControl ? 'block' : 'none';
-            document.getElementById('lock-room-btn').innerText = gameState.isLocked ? "فتح الغرفة 🔓" : "إغلاق الغرفة 🔒";
-
-            if(gameState.status === 'lobby') {
-                showScreen('lobby-screen');
-                document.getElementById('red-spy-name').innerText = getPlayerNames('red', 'spy');
-                document.getElementById('red-ops-names').innerText = getPlayerNames('red', 'op');
-                document.getElementById('blue-spy-name').innerText = getPlayerNames('blue', 'spy');
-                document.getElementById('blue-ops-names').innerText = getPlayerNames('blue', 'op');
-                checkStartCondition();
-            } else if(gameState.status === 'playing') {
-                showScreen('game-screen');
-                
-                document.getElementById('red-count').innerText = gameState.redLeft;
-                document.getElementById('blue-count').innerText = gameState.blueLeft;
-
-                renderTeamLists();
-                renderLog();
-
-                if(gameState.winner) {
-                    document.getElementById('board').style.display = 'none';
-                    document.getElementById('clue-panel').style.display = 'none';
-                    document.getElementById('active-clue-area').style.display = 'none';
-                    
-                    const winBanner = document.getElementById('win-banner');
-                    winBanner.style.display = 'block';
-                    winBanner.innerText = `ألف مبروك الفوز يا أساطير (${gameState.winner === 'red' ? 'الفريق الأحمر' : 'الفريق الأزرق'})`;
-                } else {
-                    document.getElementById('board').style.display = 'grid';
-                    document.getElementById('win-banner').style.display = 'none';
-                    renderBoard();
-
-                    const turnText = gameState.currentTurn === 'red' ? 'الفريق الأحمر' : 'الفريق الأزرق';
-                    document.getElementById('turn-indicator').innerText = `دور: ${turnText}`;
-                    document.getElementById('turn-indicator').style.color = gameState.currentTurn === 'red' ? 'var(--red-team)' : 'var(--blue-team)';
-
-                    const clueArea = document.getElementById('active-clue-area');
-                    if(gameState.clue) {
-                        clueArea.style.display = 'block';
-                        clueArea.innerText = `التلميح: "${gameState.clue.word}" | المحاولات المتبقية: ${gameState.clue.guessesLeft}`;
-                    } else {
-                        clueArea.style.display = 'none';
-                    }
-
-                    const isMyTurn = myTeam === gameState.currentTurn;
-                    if(isMyTurn && myRole === 'spy' && !gameState.clue) {
-                        document.getElementById('clue-panel').style.display = 'flex';
-                    } else {
-                        document.getElementById('clue-panel').style.display = 'none';
-                    }
-                }
-            }
-        }
-
-        function renderTeamLists() {
-            const redList = document.getElementById('red-team-list');
-            const blueList = document.getElementById('blue-team-list');
-            redList.innerHTML = ''; blueList.innerHTML = '';
-
-            const canControl = isController();
-
-            Object.entries(gameState.players).forEach(([pId, p]) => {
-                if(!p.team) return;
-                const card = document.createElement('div');
-                card.className = 'player-card';
-
-                const star = (p.isHost || p.isCoHost) ? ' ⭐️' : '';
-                const roleBadge = p.role === 'spy' ? ' (مُلمّح)' : '';
-
-                let controlBtns = '';
-                if(canControl && pId !== (myId || peer?.id) && !p.isHost) {
-                    const coHostBtnText = p.isCoHost ? 'إلغاء ⭐️' : 'منح ⭐️';
-                    controlBtns = `
-                        <div style="display:flex; gap:2px;">
-                            <button class="btn-star" onclick="reqToggleCoHost('${pId}')">${coHostBtnText}</button>
-                            <button class="btn-danger" onclick="reqKickPlayer('${pId}')">طرد ❌</button>
-                        </div>
-                    `;
-                }
-
-                card.innerHTML = `
-                    <div class="player-info">
-                        <div class="avatar-icon">${AVATARS[p.avatar]}</div>
-                        <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.name}${star}${roleBadge}</span>
-                    </div>
-                    ${controlBtns}
-                `;
-
-                if(p.team === 'red') redList.appendChild(card);
-                if(p.team === 'blue') blueList.appendChild(card);
-            });
-        }
-
-        function reqKickPlayer(targetId) {
-            if(isHost) { kickPlayer(targetId); broadcastState(); } 
-            else { conn.send({ type: 'KICK_PLAYER', targetId }); }
-        }
-
-        function reqToggleCoHost(targetId) {
-            if(isHost) { toggleCoHost(targetId); broadcastState(); } 
-            else { conn.send({ type: 'TOGGLE_COHOST', targetId }); }
-        }
-
-        function renderLog() {
-            const logBox = document.getElementById('game-log');
-            logBox.innerHTML = '';
-            gameState.logs.forEach(item => {
-                const div = document.createElement('div');
-                div.className = 'log-item';
-                let styleColor = item.color ? `color:${item.color}; font-weight:bold;` : '';
-                div.innerHTML = `<span style="color:var(--neutral)">[${item.time}]</span> <span style="${styleColor}">${item.msg}</span>`;
-                logBox.appendChild(div);
-            });
-        }
-
-        function renderBoard() {
-            const boardEl = document.getElementById('board');
-            boardEl.innerHTML = '';
-            const isSpy = myRole === 'spy';
-
-            gameState.board.forEach((card, index) => {
-                const cardEl = document.createElement('div');
-                cardEl.className = 'word-card';
-                cardEl.innerText = card.word;
-
-                if(card.revealed) {
-                    cardEl.classList.add(`card-${card.type}`);
-                } else if(isSpy) {
-                    cardEl.classList.add('spymaster-view', `card-${card.type}`);
-                }
-
-                if(!card.revealed && !isSpy && myTeam === gameState.currentTurn && gameState.clue) {
-                    cardEl.onclick = () => selectCard(index);
-                }
-                boardEl.appendChild(cardEl);
-            });
-        }
-
-        function selectCard(index) {
-            if(isHost) {
-                processCardClick(index, peer.id);
-                broadcastState();
-            } else {
-                conn.send({ type: 'SELECT_CARD', index });
-            }
-        }
-
-        function processCardClick(index, playerId) {
-            let card = gameState.board[index];
-            if(card.revealed || !gameState.clue || gameState.winner) return;
-
-            card.revealed = true;
-            gameState.clue.guessesLeft--;
-
-            let pName = gameState.players[playerId]?.name || "لاعب";
-            let typeColor = card.type === 'red' ? 'var(--red-team)' : card.type === 'blue' ? 'var(--blue-team)' : card.type === 'neutral' ? 'var(--neutral)' : '#ff0000';
-            
-            addLog(`اختر ${pName} الكلمة "${card.word}"`, typeColor);
-
-            if(card.type === 'red') gameState.redLeft--;
-            if(card.type === 'blue') gameState.blueLeft--;
-
-            if(card.type === 'assassin') {
-                gameState.winner = gameState.currentTurn === 'red' ? 'blue' : 'red';
-                addLog(`💀 اختار ${pName} كلمة القاتل! انتهت اللعبة.`, '#ff0000');
-                clearInterval(timerInterval);
-                return;
-            }
-
-            if(gameState.redLeft <= 0 || gameState.blueLeft <= 0) {
-                gameState.winner = gameState.redLeft <= 0 ? 'red' : 'blue';
-                addLog(`🎉 اكتملت كافة الكلمات! الفائز هو الفريق ${gameState.winner === 'red' ? 'الأحمر' : 'الأزرق'}.`);
-                clearInterval(timerInterval);
-                return;
-            }
-
-            if(card.type !== gameState.currentTurn || gameState.clue.guessesLeft <= 0) {
-                switchTurn();
-            }
-        }
-
-        function submitClue() {
-            const word = document.getElementById('clue-word').value.trim();
-            const count = parseInt(document.getElementById('clue-count').value);
-            if(!word) return;
-
-            if(isHost) {
-                processClue(word, count, peer.id);
-                broadcastState();
-            } else {
-                conn.send({ type: 'SUBMIT_CLUE', word, count });
-            }
+        function sendClue() {
+            const word = document.getElementById('clue-word').value;
+            const count = document.getElementById('clue-count').value;
+            if (!word) return;
+            addLog(`التلميح: ${word} (${count} + 1)`, 'system');
             document.getElementById('clue-word').value = '';
         }
 
-        function processClue(word, count, playerId) {
-            let pName = gameState.players[playerId]?.name || "المُلمّح";
-            gameState.clue = { word, count, guessesLeft: count + 1 };
-            addLog(`أرسل المُلمّح (${pName}) التلميح: "${word}" للعدد: ${count}`);
+        function toggleLockRoom() {
+            addLog('تم تغيير حالة قفل الغرفة من قبل المضيف', 'red');
         }
 
-        function endTurn() {
-            if(isHost) { switchTurn(); broadcastState(); } else { conn.send({ type: 'END_TURN' }); }
-        }
-
-        function switchTurn() {
-            gameState.currentTurn = gameState.currentTurn === 'red' ? 'blue' : 'red';
-            gameState.clue = null;
-            if(gameState.timerMode !== 'none') gameState.timer = parseInt(gameState.timerMode);
-            addLog(`تحول الدور الآن إلى الفريق ${gameState.currentTurn === 'red' ? 'الأحمر' : 'الأزرق'}.`);
-        }
-
-        function startTimer() {
-            clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
-                if(!isHost || gameState.timerMode === 'none' || gameState.winner) return;
-                gameState.timer--;
-                if(gameState.timer <= 0) {
-                    addLog("انتهى وقت الدور المحدد!");
-                    switchTurn();
-                }
-                broadcastState();
-                updateTimerDisplay();
-            }, 1000);
-        }
-
-        function updateTimerDisplay() {
-            if(gameState.timerMode === 'none') return;
-            const minutes = Math.floor(gameState.timer / 60);
-            const seconds = Math.floor(gameState.timer % 60);
-            document.getElementById('timer-display').innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        }
-
-        function resetGame(toLobby) {
-            if(isHost) {
-                if(toLobby) { gameState.status = 'lobby'; gameState.winner = null; clearInterval(timerInterval); }
-                else { initGame(); }
-                broadcastState();
-            } else {
-                conn.send({ type: 'RESET_GAME', toLobby });
-            }
-        }
-
-        function checkStartCondition() {
-            const hasRedSpy = Object.values(gameState.players).some(p => p.team === 'red' && p.role === 'spy');
-            const hasRedOp = Object.values(gameState.players).some(p => p.team === 'red' && p.role === 'op');
-            const hasBlueSpy = Object.values(gameState.players).some(p => p.team === 'blue' && p.role === 'spy');
-            const hasBlueOp = Object.values(gameState.players).some(p => p.team === 'blue' && p.role === 'op');
-
-            const isValid = hasRedSpy && hasRedOp && hasBlueSpy && hasBlueOp;
-            document.getElementById('start-btn').disabled = !isValid;
-            document.getElementById('start-error').style.display = isValid ? 'none' : 'block';
-        }
-
-        function getPlayerNames(team, role) {
-            return Object.values(gameState.players).filter(p => p.team === team && p.role === role).map(p => {
-                const star = (p.isHost || p.isCoHost) ? ' ⭐️' : '';
-                return p.name + star;
-            }).join(', ') || '-';
-        }
+        // تشغيل اللعبة عند التحميل
+        window.onload = initGrid;
     </script>
 </body>
 </html>
