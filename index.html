@@ -3,62 +3,327 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سيبركود ︽ CyberCode</title>
-
-    <!-- وسوم المعاينة والصورة المصغرة (Open Graph & Twitter) -->
-    <meta property="og:title" content="سيبركود ︽ CyberCode">
-    <meta property="og:description" content="لعبة التخمين والرموز التفاعلية السايبربنك - تحدى أصدقائك الآن!">
-    <meta property="og:image" content="https://public69.github.io/cybercode/preview.png">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta property="og:type" content="website">
-
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="سيبركود ︽ CyberCode">
-    <meta name="twitter:description" content="لعبة التخمين والرموز التفاعلية السايبربنك - تحدى أصدقائك الآن!">
-    <meta name="twitter:image" content="https://public69.github.io/cybercode/preview.png">
-
-    <!-- مكتبة PeerJS للاتصال P2P -->
+    <title>كودسيبر ︽ CODECYBER</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 
     <style>
         :root {
-            --bg-color: #080b10;
-            --panel-bg: rgba(22, 27, 34, 0.85);
+            --bg-color: #030712;
+            --panel-bg: rgba(10, 15, 30, 0.85);
             --cyan-glow: #00f3ff;
-            --red-glow: #ff0055;
-            --blue-team: #1e90ff;
-            --text-color: #e6edf3;
-            --border-color: #30363d;
+            --blue-team: #0066ff;
+            --blue-glow: rgba(0, 102, 255, 0.6);
+            --red-team: #ff0055;
+            --red-glow: rgba(255, 0, 85, 0.6);
+            --green-glow: #00ff66;
+            --text-color: #e2e8f0;
+            --border-cyan: rgba(0, 243, 255, 0.3);
+            --border-red: rgba(255, 0, 85, 0.3);
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding-bottom: 30px;
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Consolas', 'Segoe UI', monospace, sans-serif; }
+        
+        body { 
+            background-color: var(--bg-color); 
+            color: var(--text-color); 
+            min-height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: space-between; 
             overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(0, 243, 255, 0.05) 0%, transparent 60%),
+                linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
+            background-size: 100% 100%, 30px 30px, 30px 30px;
         }
 
-        /* شريط الأخبار المتحرك Ticker Bar */
-        .marquee-container {
+        /* الشريط العلوي */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 24px;
+            background: rgba(3, 7, 18, 0.95);
+            border-bottom: 1px solid var(--border-cyan);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.15);
+        }
+        
+        .top-left, .top-right { display: flex; gap: 12px; align-items: center; }
+        
+        .cyber-btn {
+            background: rgba(0, 243, 255, 0.05);
+            border: 1px solid var(--cyan-glow);
+            color: var(--cyan-glow);
+            padding: 6px 18px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+            transition: all 0.2s ease;
+            box-shadow: 0 0 5px rgba(0, 243, 255, 0.2);
+        }
+
+        .cyber-btn:hover {
+            background: var(--cyan-glow);
+            color: #000;
+            box-shadow: 0 0 15px var(--cyan-glow);
+        }
+
+        .cyber-btn.danger {
+            border-color: var(--red-team);
+            color: var(--red-team);
+        }
+        .cyber-btn.danger:hover {
+            background: var(--red-team);
+            color: #fff;
+            box-shadow: 0 0 15px var(--red-team);
+        }
+
+        /* المؤقت وشريط الدور */
+        .turn-badge {
+            padding: 6px 16px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            border-radius: 4px;
+            letter-spacing: 1px;
+            text-shadow: 0 0 8px currentColor;
+        }
+        .turn-blue { background: rgba(0, 102, 255, 0.2); color: #3388ff; border: 1px solid var(--blue-team); }
+        .turn-red { background: rgba(255, 0, 85, 0.2); color: #ff3377; border: 1px solid var(--red-team); }
+
+        .timer-display {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--cyan-glow);
+            background: #000;
+            padding: 4px 12px;
+            border: 1px solid var(--cyan-glow);
+            border-radius: 4px;
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
+        }
+
+        /* التخطيط الرئيسي */
+        .main-container {
+            display: grid;
+            grid-template-columns: 280px 1fr 280px;
+            gap: 15px;
+            padding: 20px;
+            max-width: 1450px;
+            margin: 0 auto;
             width: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            border-bottom: 1px solid var(--cyan-glow);
+        }
+
+        /* لوحات الفرق */
+        .team-box {
+            background: var(--panel-bg);
+            border-radius: 6px;
+            padding: 14px;
+            border: 1px solid var(--border-cyan);
+            margin-bottom: 12px;
+            position: relative;
+            clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+            backdrop-filter: blur(5px);
+        }
+
+        .team-box.blue { border-color: var(--blue-team); box-shadow: inset 0 0 15px rgba(0, 102, 255, 0.15), 0 0 10px rgba(0, 102, 255, 0.2); }
+        .team-box.red { border-color: var(--red-team); box-shadow: inset 0 0 15px rgba(255, 0, 85, 0.15), 0 0 10px rgba(255, 0, 85, 0.2); }
+
+        .team-title {
+            font-size: 0.85rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .team-box.blue .team-title { color: #3388ff; text-shadow: 0 0 8px var(--blue-glow); }
+        .team-box.red .team-title { color: #ff3377; text-shadow: 0 0 8px var(--red-glow); }
+
+        .players-list { display: flex; gap: 8px; flex-wrap: wrap; }
+        
+        .cyber-avatar {
+            padding: 6px 12px;
+            background: #090d16;
+            border: 1px solid var(--border-cyan);
+            font-size: 0.8rem;
+            color: #fff;
+            clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
+            box-shadow: 0 0 8px rgba(0, 243, 255, 0.2);
+            cursor: pointer;
+        }
+        .team-box.red .cyber-avatar { border-color: var(--border-red); box-shadow: 0 0 8px rgba(255, 0, 85, 0.2); }
+
+        /* المنتصف */
+        .center-panel { display: flex; flex-direction: column; gap: 12px; }
+
+        .game-log-box {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-cyan);
+            border-radius: 4px;
+            height: 100px;
+            padding: 10px;
+            overflow-y: auto;
+            font-size: 0.85rem;
+            color: #8a99ad;
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.8);
+        }
+        .log-title { text-align: center; color: var(--cyan-glow); font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 6px; text-shadow: 0 0 5px var(--cyan-glow); }
+
+        .active-clue-display {
+            background: rgba(0, 243, 255, 0.08);
+            border: 1px solid var(--cyan-glow);
+            padding: 10px;
+            text-align: center;
+            font-size: 1rem;
+            font-weight: bold;
+            color: var(--cyan-glow);
+            letter-spacing: 1px;
+            clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* شبكة الكلمات 5x5 */
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+        }
+
+        .card {
+            aspect-ratio: 1.3;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--border-cyan);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.95rem;
+            cursor: pointer;
+            text-align: center;
+            color: var(--text-color);
+            user-select: none;
+            transition: all 0.2s;
+            position: relative;
+            clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+        }
+
+        .card:hover { 
+            border-color: var(--cyan-glow); 
+            box-shadow: 0 0 12px var(--cyan-glow);
+            transform: translateY(-2px);
+        }
+
+        /* المكشوف */
+        .card.revealed-blue { background: var(--blue-team) !important; color: #fff; box-shadow: 0 0 15px var(--blue-glow); border-color: #3388ff; }
+        .card.revealed-red { background: var(--red-team) !important; color: #fff; box-shadow: 0 0 15px var(--red-glow); border-color: #ff3377; }
+        .card.revealed-neutral { background: #475569 !important; color: #cbd5e1; }
+        .card.revealed-assassin { background: #000 !important; color: var(--red-team); border: 2px solid var(--red-team); box-shadow: 0 0 20px var(--red-glow); }
+
+        /* القائد */
+        .spymaster-mode .card:not([class*="revealed-"]).spy-blue { border: 2px solid var(--blue-team); }
+        .spymaster-mode .card:not([class*="revealed-"]).spy-red { border: 2px solid var(--red-team); }
+        .spymaster-mode .card:not([class*="revealed-"]).spy-neutral { border: 1px dashed #64748b; }
+        .spymaster-mode .card:not([class*="revealed-"]).spy-assassin { border: 2px solid #ff0055; background: rgba(255, 0, 85, 0.1); }
+
+        .spymaster-mode .card.selected-for-clue {
+            background: rgba(0, 243, 255, 0.25) !important;
+            box-shadow: 0 0 18px var(--cyan-glow), inset 0 0 12px var(--cyan-glow) !important;
+            border: 2px solid var(--cyan-glow) !important;
+            color: #fff !important;
+        }
+
+        /* التحكم بالتلميح */
+        .clue-bar {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-cyan);
+            padding: 10px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        }
+
+        .clue-input, .clue-select {
+            background: #030712;
+            border: 1px solid var(--border-cyan);
+            color: var(--cyan-glow);
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            outline: none;
+        }
+        .clue-input { flex: 2; }
+        .clue-select { flex: 0.8; cursor: pointer; text-align: center; font-weight: bold; }
+
+        .btn-send {
+            background: rgba(0, 255, 102, 0.1);
+            color: var(--green-glow);
+            border: 1px solid var(--green-glow);
+            padding: 10px 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+        }
+        .btn-send:hover { background: var(--green-glow); color: #000; box-shadow: 0 0 15px var(--green-glow); }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(3, 7, 18, 0.94);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-content {
+            background: var(--panel-bg);
+            padding: 25px;
+            border: 1px solid var(--cyan-glow);
+            width: 500px;
+            max-width: 95%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 0 25px rgba(0, 243, 255, 0.2);
+            clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
+        }
+
+        .lobby-teams {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .lobby-team-box {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid #333;
+            padding: 12px;
+            border-radius: 4px;
+        }
+        .lobby-team-box.blue { border-color: var(--blue-team); }
+        .lobby-team-box.red { border-color: var(--red-team); }
+
+        .marquee-footer {
+            width: 100%;
+            background: #02040a;
+            border-top: 1px solid var(--cyan-glow);
             overflow: hidden;
             white-space: nowrap;
             padding: 8px 0;
-            position: relative;
         }
 
         .marquee-text {
@@ -66,340 +331,613 @@
             padding-left: 100%;
             animation: marquee 25s linear infinite;
             color: var(--cyan-glow);
-            font-size: 0.9rem;
-            letter-spacing: 1px;
-        }
-
-        @keyframes marquee {
-            0% { transform: translate(0, 0); }
-            100% { transform: translate(-100%, 0); }
-        }
-
-        /* الواجهة الرئيسية */
-        .container {
-            width: 95%;
-            max-width: 1000px;
-            margin-top: 20px;
-            display: grid;
-            grid-template-columns: 1fr 300px;
-            gap: 20px;
-        }
-
-        @media (max-width: 850px) {
-            .container {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .main-panel {
-            background: var(--panel-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 0 15px rgba(0, 243, 255, 0.1);
-        }
-
-        .sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .panel-box {
-            background: var(--panel-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 15px;
-        }
-
-        h1, h2, h3 {
-            color: var(--cyan-glow);
-            text-shadow: 0 0 8px rgba(0, 243, 255, 0.5);
-            margin-bottom: 12px;
-        }
-
-        /* شبكة اللعبة 5x5 */
-        .game-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 10px;
-            margin: 20px 0;
-        }
-
-        .card {
-            aspect-ratio: 1;
-            background: #161b22;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-align: center;
-            padding: 5px;
-            user-select: none;
-        }
-
-        .card:hover {
-            border-color: var(--cyan-glow);
-            box-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
-            transform: translateY(-2px);
-        }
-
-        .card.revealed-blue { background: #1f6beb !important; color: #fff; }
-        .card.revealed-red { background: #da3633 !important; color: #fff; }
-        .card.revealed-neutral { background: #8b949e !important; color: #fff; }
-        .card.revealed-assassin { background: #000 !important; color: var(--red-glow); border-color: var(--red-glow); }
-
-        /* الأزرار والمدخلات */
-        .btn {
-            background: #21262d;
-            color: var(--cyan-glow);
-            border: 1px solid var(--cyan-glow);
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.2s;
-            width: 100%;
-            margin-top: 5px;
-        }
-
-        .btn:hover {
-            background: var(--cyan-glow);
-            color: #000;
-            box-shadow: 0 0 10px var(--cyan-glow);
-        }
-
-        .btn-danger {
-            color: var(--red-glow);
-            border-color: var(--red-glow);
-        }
-
-        .btn-danger:hover {
-            background: var(--red-glow);
-            color: #fff;
-            box-shadow: 0 0 10px var(--red-glow);
-        }
-
-        input, select {
-            width: 100%;
-            padding: 8px;
-            background: #0d1117;
-            border: 1px solid var(--border-color);
-            color: #fff;
-            border-radius: 6px;
-            margin-bottom: 8px;
-        }
-
-        /* قائمة اللاعبين والأدوار الإدارية */
-        .player-list {
-            list-style: none;
-        }
-
-        .player-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 6px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .player-info {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .badge {
-            color: #ffd700;
-            font-size: 0.9rem;
-        }
-
-        /* سجل الأحداث */
-        .game-log {
-            height: 150px;
-            overflow-y: auto;
-            background: #0d1117;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 8px;
             font-size: 0.85rem;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
+            letter-spacing: 2px;
         }
 
-        .log-entry {
-            color: #8b949e;
-        }
-
-        .log-entry.blue { color: #58a6ff; }
-        .log-entry.red { color: #ff7b72; }
-        .log-entry.system { color: #7ee787; }
+        @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
     </style>
 </head>
 <body>
 
-    <!-- شريط الأخبار -->
-    <div class="marquee-container">
-        <div class="marquee-text">
-            ︽ CYBERCODE SYSTEM ONLINE ︽ نظام التشفير التفاعلي جاهز ︽ اختر فريقك وقم بفك الشفرة بحذر ︽ تجنب البطاقة القاتلة ︽
+    <!-- نافذة تسجيل الدخول والانضمام -->
+    <div id="login-modal" class="modal-overlay">
+        <div class="modal-content" style="text-align: center;">
+            <h1 style="color:var(--cyan-glow); margin-bottom: 10px; letter-spacing: 3px; font-size: 1.8rem; text-shadow: 0 0 12px var(--cyan-glow);">CODECYBER ︽</h1>
+            <p style="color:#8a99ad; font-size:0.85rem; margin-bottom: 20px;">نظام التشفير الشبكي التكتيكي</p>
+            
+            <input type="text" id="player-name-input" placeholder="أدخل اسمك..." class="clue-input" style="width:100%; margin-bottom:12px; text-align:center;">
+
+            <div style="display:flex; gap:10px; margin-bottom:15px;">
+                <button class="btn-send" style="flex:1;" onclick="initHost()">إنشاء غرفة جديدة</button>
+            </div>
+
+            <div style="border-top: 1px dashed var(--border-cyan); padding-top: 15px; margin-top: 10px;">
+                <input type="text" id="room-code-input" placeholder="رمز الغرفة..." class="clue-input" style="width:100%; margin-bottom:12px; text-align:center;">
+                <button class="cyber-btn" style="width:100%; justify-content:center; padding:10px;" onclick="initClient()">الانضمام للغرفة</button>
+            </div>
         </div>
     </div>
 
-    <div class="container">
-        <!-- اللوحة الرئيسية والشبكة -->
-        <div class="main-panel">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h1>سيبركود ︽ CyberCode</h1>
-                <div id="timer-display" style="font-family: monospace; font-size: 1.2rem; color: var(--cyan-glow);">--:--</div>
-            </div>
-
-            <!-- شبكة البطاقات 5x5 -->
-            <div class="game-grid" id="grid">
-                <!-- يتم إنشاؤها عبر JavaScript -->
-            </div>
-
-            <!-- أدوات إعطاء التلميح -->
-            <div style="display: flex; gap: 10px; margin-top: 15px;">
-                <input type="text" id="clue-word" placeholder="كلمة التلميح..." style="flex: 2;">
-                <select id="clue-count" style="flex: 1;">
-                    <option value="1">1 (+1)</option>
-                    <option value="2">2 (+1)</option>
-                    <option value="3">3 (+1)</option>
-                    <option value="4">4 (+1)</option>
-                    <option value="5">5 (+1)</option>
+    <!-- نافذة الانتظار وإعدادات اللعبة للمضيف / المنضمين -->
+    <div id="lobby-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <h2 style="color:var(--cyan-glow); text-align:center; letter-spacing: 2px;"> غطاء الغرفة ︽ <span id="lobby-room-code" style="color:#fff;"></span></h2>
+            
+            <!-- تحكم المضيف بالمؤقت -->
+            <div id="host-controls" style="margin-top: 15px; background: rgba(0,243,255,0.05); padding: 10px; border: 1px solid var(--border-cyan);">
+                <label style="color:var(--cyan-glow); font-size:0.85rem; display:block; margin-bottom:5px;">⏱️ وضع الوقت (التحكم لدى المضيف):</label>
+                <select id="timer-speed-select" class="clue-select" style="width:100%;" onchange="updateTimerSetting()">
+                    <option value="90">سريع (1:30 دقيقة لكل فريق)</option>
+                    <option value="150" selected>متوسط (2:30 دقيقة لكل فريق)</option>
+                    <option value="240">طبيعي (4:00 دقائق لكل فريق)</option>
+                    <option value="0">بدون مؤقت</option>
                 </select>
-                <button class="btn" style="flex: 1; margin-top: 0;" onclick="sendClue()">إرسال</button>
+            </div>
+
+            <!-- قائمة اللاعبين والفرق -->
+            <div class="lobby-teams">
+                <div class="lobby-team-box blue">
+                    <h3 style="color:#3388ff; font-size:0.9rem; margin-bottom:8px;">🔵 الفريق الأزرق</h3>
+                    <div style="font-size:0.8rem; margin-bottom:4px;"><b>المُلمّح:</b> <span id="blue-spy-name">غير محدد</span></div>
+                    <div style="font-size:0.8rem;"><b>اللاعبون:</b> <div id="blue-ops-list"></div></div>
+                    <button class="cyber-btn" style="margin-top:8px; width:100%; justify-content:center; font-size:0.75rem;" onclick="joinTeam('blue', 'operative')">انضمام كلاعب</button>
+                    <button class="cyber-btn" style="margin-top:4px; width:100%; justify-content:center; font-size:0.75rem;" onclick="joinTeam('blue', 'spymaster')">انضمام كمُلمّح</button>
+                </div>
+
+                <div class="lobby-team-box red">
+                    <h3 style="color:#ff3377; font-size:0.9rem; margin-bottom:8px;">🔴 الفريق الأحمر</h3>
+                    <div style="font-size:0.8rem; margin-bottom:4px;"><b>المُلمّح:</b> <span id="red-spy-name">غير محدد</span></div>
+                    <div style="font-size:0.8rem;"><b>اللاعبون:</b> <div id="red-ops-list"></div></div>
+                    <button class="cyber-btn danger" style="margin-top:8px; width:100%; justify-content:center; font-size:0.75rem;" onclick="joinTeam('red', 'operative')">انضمام كلاعب</button>
+                    <button class="cyber-btn danger" style="margin-top:4px; width:100%; justify-content:center; font-size:0.75rem;" onclick="joinTeam('red', 'spymaster')">انضمام كمُلمّح</button>
+                </div>
+            </div>
+
+            <button id="start-game-btn" class="btn-send" style="width:100%; padding:12px; display:none;" onclick="startGame()">بدء اللعبة الآن ︽</button>
+        </div>
+    </div>
+
+    <!-- الشريط العلوي -->
+    <div class="top-bar">
+        <div class="top-left">
+            <div id="current-turn-badge" class="turn-badge turn-blue">دور الفريق الأزرق</div>
+            <div id="timer-display" class="timer-display">02:30</div>
+        </div>
+        <div class="top-right">
+            <button class="cyber-btn" onclick="endTurn()">⏹️ إنهاء الدور</button>
+            <button id="host-reset-btn" class="cyber-btn danger" style="display:none;" onclick="resetGame(true)">🔄 إعادة اللعبة</button>
+        </div>
+    </div>
+
+    <!-- واجهة اللعب الرئيسية -->
+    <div class="main-container" id="main-container">
+        
+        <!-- الفريق الأزرق -->
+        <div>
+            <div class="team-box blue">
+                <div class="team-title">OPERATIVES (<span id="blue-score">8</span>)</div>
+                <div class="players-list" id="game-blue-ops"></div>
+            </div>
+            <div class="team-box blue">
+                <div class="team-title">SPYMASTER</div>
+                <div class="players-list" id="game-blue-spy"></div>
             </div>
         </div>
 
-        <!-- القائمة الجانبية والإدارة -->
-        <div class="sidebar">
-            <!-- الاتصال والغرف -->
-            <div class="panel-box">
-                <h3>الغرفة والاتصال</h3>
-                <button class="btn" onclick="createRoom()">إنشاء غرفة جديدة</button>
-                <div style="margin-top: 8px;">
-                    <input type="text" id="join-id" placeholder="رمز الغرفة للإنضمام...">
-                    <button class="btn" onclick="joinRoom()">إنضمام</button>
-                </div>
-                <div id="room-status" style="margin-top: 8px; font-size: 0.8rem; color: #7ee787;">غير متصل</div>
+        <!-- المنتصف -->
+        <div class="center-panel">
+            <div class="game-log-box" id="game-log">
+                <div class="log-title">System // GAME LOG</div>
+                <div>[النظام] جاري بدء الاتصال المشفر...</div>
             </div>
 
-            <!-- قائمة المتواجدين والإدارة -->
-            <div class="panel-box">
-                <h3>اللاعبين الأدمن <span id="admin-badge" class="badge"></span></h3>
-                <ul class="player-list" id="player-list">
-                    <li class="player-item">
-                        <div class="player-info">
-                            <span class="badge">⭐️</span>
-                            <span>اللاعب (أنت)</span>
-                        </div>
-                        <span style="font-size: 0.8rem; color: var(--cyan-glow);">القائد</span>
-                    </li>
-                </ul>
+            <div class="active-clue-display">
+                <span id="active-clue">التلميح الحالي: بانتظار إرسال التلميح...</span>
+                <span id="clue-progress" style="font-size:0.85rem; color:#fff;">الفتوحات: 0/0</span>
             </div>
 
-            <!-- سجل الأحداث -->
-            <div class="panel-box">
-                <h3>سجل الأحداث</h3>
-                <div class="game-log" id="game-log">
-                    <div class="log-entry system">[النظام] مرحباً بك في CyberCode!</div>
-                </div>
-            </div>
+            <div class="game-grid" id="grid"></div>
 
-            <!-- إعدادات الإدارة (المضيف) -->
-            <div class="panel-box" id="admin-controls">
-                <h3>إعدادات التحكم</h3>
-                <select id="timer-select">
-                    <option value="none">بدون مؤقت</option>
-                    <option value="90">90 ثانية</option>
-                    <option value="150">150 ثانية</option>
-                    <option value="240">240 ثانية</option>
+            <div class="clue-bar" id="clue-bar">
+                <input type="text" id="clue-word" class="clue-input" placeholder="أدخل كلمة التلميح...">
+                <select id="clue-count-select" class="clue-select">
+                    <option value="0">0</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="∞">∞ (غير محدود)</option>
                 </select>
-                <button class="btn btn-danger" onclick="toggleLockRoom()">قفل / فتح الغرفة</button>
+                <button class="btn-send" onclick="sendClue()">إرسال التلميح</button>
             </div>
+        </div>
+
+        <!-- الفريق الأحمر -->
+        <div>
+            <div class="team-box red">
+                <div class="team-title">OPERATIVES (<span id="red-score">7</span>)</div>
+                <div class="players-list" id="game-red-ops"></div>
+            </div>
+            <div class="team-box red">
+                <div class="team-title">SPYMASTER</div>
+                <div class="players-list" id="game-red-spy"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- الشريط الإخباري -->
+    <div class="marquee-footer">
+        <div class="marquee-text">
+            ︽ CODECYBER SYSTEM ONLINE ︽ اختر فريقك وقم بفك الشفرة بحذر ︽ تجنب البطاقة القاتلة ︽
         </div>
     </div>
 
     <script>
-        // التهيئة الأساسية للعبة
-        const wordsList = [
-            "تشفير", "سيرفر", "شبكة", "معالج", "ذاكرة", 
-            "قاعدة", "حماية", "كود", "برمجية", "ملف",
-            "بروتوكول", "شاشة", "مفتاح", "بيانات", "نظام",
-            "صمام", "قرص", "اتصال", "منفذ", "بوابة",
-            "سحابي", "خوارزمية", "شفرة", "رابط", "مستكشف"
+        // بنك كلمات شامل لضمان التنوع العالي وتوليد آلاف التشكيلات العشوائية
+        const baseWords = [
+            // التقنية والسيبراني
+            "تشفير", "سيرفر", "شبكة", "معالج", "ذاكرة", "قاعدة", "حماية", "كود", "برمجية", "ملف",
+            "بروتوكول", "شاشة", "مفتاح", "بيانات", "نظام", "صمام", "قرص", "اتصال", "منفذ", "بوابة",
+            "سحابي", "خوارزمية", "شفرة", "رابط", "مستكشف", "رادار", "صادق", "طاقة", "مجال", "محرك",
+            "فيروس", "جدار", "نواة", "تردد", "اشارة", "تذبذب", "بكسل", "كاميرا", "صوت", "ضوء",
+            // الأدوات والأشياء
+            "سيف", "درع", "خوذة", "رمح", "قوس", "سهم", "مدفع", "رصاصة", "قنبلة", "حارس",
+            "سفينة", "طائرة", "قطار", "سيارة", "محرك", "وقود", "شراع", "بوصلة", "خريطة", "منظار",
+            "مفتاح", "قفل", "باب", "جدار", "برج", "قلعة", "جسر", "نفق", "طريق", "ممر",
+            "كتاب", "قلم", "ورقة", "ختم", "رسالة", "صندوق", "خزنة", "ذهب", "فضة", "ماس",
+            // الطبيعة والفضاء
+            "شمس", "قمر", "نجم", "كوكب", "مجرة", "مذنب", "شهاب", "ثقب", "غبار", "سحاب",
+            "مطر", "رعد", "برق", "ريح", "عاصفة", "إعصار", "ثلج", "جليد", "محيط", "بحر",
+            "نهر", "بحيرة", "وادي", "جبل", "قيمة", "بركان", "زلازل", "صحراء", "واحة", "غابة",
+            "شجرة", "زهرة", "ورقة", "جذر", "ثمرة", "حجر", "صخر", "رمل", "طين", "كهف",
+            "أسد", "صقر", "نسر", "ذئب", "نمر", "فهد", "حصان", "جمل", "قرش", "حوت",
+            // العلوم والمفاهيم
+            "زمن", "وقت", "ساعة", "دقيقة", "ثانية", "عصر", "تاريخ", "مستقبل", "حاضر", "ماضي",
+            "سرعة", "كتلة", "وزن", "حجم", "عمق", "ارتفاع", "عرض", "طول", "مسافة", "زاوية",
+            "حرارة", "برودة", "ضغط", "كثافة", "توازن", "حركة", "سكون", "طاقة", "قوة", "شعاع",
+            "عقل", "فكر", "حلم", "خيال", "رؤية", "هدف", "خطة", "قرار", "سر", "لغز"
         ];
 
-        let peer = new Peer();
-        let currentRoomId = null;
+        const wordPrefixes = ["متقدم", "الكتروني", "سري", "مظلم", "عميق", "خارجي", "مركزي", "فرعي", "ذكي", "صامت", "سريع", "خفي", "عملاق", "دقيق", "مباشر"];
 
-        // بناء الشبكة 5x5 عند التشغيل
+        // دالة لتوليد قائمة واسعة من 5000 كلمة وفرزها عشوائياً
+        function generate5000Words() {
+            let pool = new Set(baseWords);
+            
+            // دمج الكلمات لإنشاء مفاهيم ومركبات عربية سريعة ومميزة
+            for (let i = 0; i < baseWords.length; i++) {
+                for (let j = 0; j < wordPrefixes.length; j++) {
+                    pool.add(`${baseWords[i]} ${wordPrefixes[j]}`);
+                    if (pool.size >= 5000) break;
+                }
+                if (pool.size >= 5000) break;
+            }
+
+            return Array.from(pool);
+        }
+
+        const wordsPool = generate5000Words();
+
+        let isHost = false;
+        let myName = "";
+        let myPeerId = "";
+        let peer = null;
+        let connections = [];
+        
+        let selectedCardsForClue = new Set();
+        let timerInterval = null;
+
+        let gameState = {
+            started: false,
+            turn: 'blue', // 'blue' or 'red'
+            timerSpeed: 150,
+            timeLeft: 150,
+            words: [],
+            types: [],
+            revealed: Array(25).fill(false),
+            activeClueWord: "-",
+            activeClueCount: 0,
+            guessesMadeInTurn: 0,
+            maxAllowedGuesses: 0,
+            players: [] // { id, name, team: 'blue'|'red', role: 'spymaster'|'operative' }
+        };
+
+        function initHost() {
+            myName = document.getElementById('player-name-input').value.trim() || "المضيف";
+            document.getElementById('login-modal').style.display = 'none';
+            document.getElementById('lobby-modal').style.display = 'flex';
+            
+            isHost = true;
+            document.getElementById('start-game-btn').style.display = 'block';
+            document.getElementById('host-reset-btn').style.display = 'inline-flex';
+
+            peer = new Peer();
+            peer.on('open', id => {
+                myPeerId = id;
+                document.getElementById('lobby-room-code').innerText = id;
+                gameState.players.push({ id: id, name: myName, team: 'blue', role: 'operative' });
+                updateLobbyUI();
+            });
+
+            peer.on('connection', conn => {
+                connections.push(conn);
+                conn.on('data', data => handleIncomingData(data, conn));
+            });
+        }
+
+        function initClient() {
+            myName = document.getElementById('player-name-input').value.trim() || "لاعب";
+            const roomCode = document.getElementById('room-code-input').value.trim();
+            if (!roomCode) return alert("أدخل رمز الغرفة");
+
+            document.getElementById('login-modal').style.display = 'none';
+            document.getElementById('lobby-modal').style.display = 'flex';
+
+            peer = new Peer();
+            peer.on('open', id => {
+                myPeerId = id;
+                document.getElementById('lobby-room-code').innerText = roomCode;
+                const conn = peer.connect(roomCode);
+                conn.on('open', () => {
+                    connections.push(conn);
+                    conn.send({ type: 'JOIN', id: myPeerId, name: myName });
+                });
+                conn.on('data', data => handleIncomingData(data, conn));
+            });
+        }
+
+        function joinTeam(team, role) {
+            if (role === 'spymaster') {
+                const existingSpy = gameState.players.find(p => p.team === team && p.role === 'spymaster');
+                if (existingSpy && existingSpy.id !== myPeerId) {
+                    return alert('يوجد مُلمّح بالفعل لهذا الفريق!');
+                }
+            }
+
+            const player = gameState.players.find(p => p.id === myPeerId);
+            if (player) {
+                player.team = team;
+                player.role = role;
+            } else {
+                gameState.players.push({ id: myPeerId, name: myName, team, role });
+            }
+
+            if (isHost) {
+                broadcastState();
+                updateLobbyUI();
+            } else {
+                sendToHost({ type: 'UPDATE_PLAYER', player: { id: myPeerId, name: myName, team, role } });
+            }
+        }
+
+        function updateTimerSetting() {
+            if (!isHost) return;
+            gameState.timerSpeed = parseInt(document.getElementById('timer-speed-select').value);
+            gameState.timeLeft = gameState.timerSpeed;
+            broadcastState();
+        }
+
+        function updateLobbyUI() {
+            const blueSpy = gameState.players.find(p => p.team === 'blue' && p.role === 'spymaster');
+            const redSpy = gameState.players.find(p => p.team === 'red' && p.role === 'spymaster');
+            
+            document.getElementById('blue-spy-name').innerText = blueSpy ? blueSpy.name : "غير محدد";
+            document.getElementById('red-spy-name').innerText = redSpy ? redSpy.name : "غير محدد";
+
+            const blueOps = gameState.players.filter(p => p.team === 'blue' && p.role === 'operative').map(p => p.name).join(', ');
+            const redOps = gameState.players.filter(p => p.team === 'red' && p.role === 'operative').map(p => p.name).join(', ');
+
+            document.getElementById('blue-ops-list').innerText = blueOps || "لا يوجد";
+            document.getElementById('red-ops-list').innerText = redOps || "لا يوجد";
+
+            if (!isHost) {
+                document.getElementById('host-controls').style.display = 'none';
+            }
+        }
+
+        function startGame() {
+            if (!isHost) return;
+            
+            let types = Array(8).fill('blue').concat(Array(7).fill('red'), Array(9).fill('neutral'), ['assassin']);
+            types.sort(() => 0.5 - Math.random());
+
+            // خلط الـ 5000 كلمة لاختيار 25 كلمة فريدة للجولة
+            gameState.words = [...wordsPool].sort(() => 0.5 - Math.random()).slice(0, 25);
+            gameState.types = types;
+            gameState.started = true;
+            gameState.turn = 'blue';
+            gameState.timeLeft = gameState.timerSpeed;
+
+            broadcastState();
+            startTimerLocal();
+            document.getElementById('lobby-modal').style.display = 'none';
+            initGrid();
+        }
+
         function initGrid() {
+            const me = gameState.players.find(p => p.id === myPeerId);
+            const isSpymaster = me && me.role === 'spymaster';
+
+            const container = document.getElementById('main-container');
+            if (isSpymaster) container.classList.add('spymaster-mode');
+            else container.classList.remove('spymaster-mode');
+
+            // إظهار شريط التلميح للمُلمّح في دوره فقط
+            const clueBar = document.getElementById('clue-bar');
+            if (isSpymaster && me.team === gameState.turn) {
+                clueBar.style.display = 'flex';
+            } else {
+                clueBar.style.display = 'none';
+            }
+
+            // رسم شبكة البطاقات
             const grid = document.getElementById('grid');
             grid.innerHTML = '';
             for (let i = 0; i < 25; i++) {
                 const card = document.createElement('div');
                 card.className = 'card';
-                card.innerText = wordsList[i] || `رمز ${i+1}`;
-                card.onclick = () => selectCard(card, i);
+                card.innerText = gameState.words[i] || `بطاقة ${i+1}`;
+
+                if (gameState.revealed[i]) {
+                    card.classList.add(`revealed-${gameState.types[i]}`);
+                } else {
+                    card.classList.add(`spy-${gameState.types[i]}`);
+                    if (isSpymaster && selectedCardsForClue.has(i)) {
+                        card.classList.add('selected-for-clue');
+                    }
+                }
+
+                card.onclick = () => onCardClick(i);
                 grid.appendChild(card);
+            }
+
+            // تحديث بيانات الشريط العلوي
+            document.getElementById('current-turn-badge').className = `turn-badge turn-${gameState.turn}`;
+            document.getElementById('current-turn-badge').innerText = gameState.turn === 'blue' ? "دور الفريق الأزرق" : "دور الفريق الأحمر";
+
+            document.getElementById('active-clue').innerText = `التلميح الحالي: ${gameState.activeClueWord} (${gameState.activeClueCount})`;
+            document.getElementById('clue-progress').innerText = `الفتوحات: ${gameState.guessesMadeInTurn}/${gameState.maxAllowedGuesses || '-'}`;
+
+            updateScoresAndPlayers();
+        }
+
+        function updateScoresAndPlayers() {
+            let blueLeft = 0, redLeft = 0;
+            for (let i = 0; i < 25; i++) {
+                if (!gameState.revealed[i]) {
+                    if (gameState.types[i] === 'blue') blueLeft++;
+                    if (gameState.types[i] === 'red') redLeft++;
+                }
+            }
+            document.getElementById('blue-score').innerText = blueLeft;
+            document.getElementById('red-score').innerText = redLeft;
+
+            const renderAvatars = (list, containerId) => {
+                const el = document.getElementById(containerId);
+                el.innerHTML = '';
+                list.forEach(p => {
+                    const av = document.createElement('div');
+                    av.className = 'cyber-avatar';
+                    av.innerText = p.name;
+                    el.appendChild(av);
+                });
+            };
+
+            renderAvatars(gameState.players.filter(p => p.team === 'blue' && p.role === 'operative'), 'game-blue-ops');
+            renderAvatars(gameState.players.filter(p => p.team === 'blue' && p.role === 'spymaster'), 'game-blue-spy');
+            renderAvatars(gameState.players.filter(p => p.team === 'red' && p.role === 'operative'), 'game-red-ops');
+            renderAvatars(gameState.players.filter(p => p.team === 'red' && p.role === 'spymaster'), 'game-red-spy');
+        }
+
+        function onCardClick(index) {
+            if (!gameState.started || gameState.revealed[index]) return;
+
+            const me = gameState.players.find(p => p.id === myPeerId);
+            if (!me) return;
+
+            // تحديد المُلمّح التفاعلي للكلمات
+            if (me.role === 'spymaster') {
+                if (selectedCardsForClue.has(index)) selectedCardsForClue.delete(index);
+                else selectedCardsForClue.add(index);
+                
+                document.getElementById('clue-count-select').value = selectedCardsForClue.size;
+                initGrid();
+                return;
+            }
+
+            // شرط دور الفريق الحالي
+            if (me.team !== gameState.turn) {
+                return alert("ليس دور فريقك الآن!");
+            }
+
+            // تنفيذ الكشف
+            if (isHost) {
+                processGuess(index);
+            } else {
+                sendToHost({ type: 'GUESS', index });
             }
         }
 
-        function selectCard(card, index) {
-            addLog(`تم النقر على البطاقة: ${card.innerText}`, 'blue');
-            card.classList.add('revealed-blue');
+        function processGuess(index) {
+            gameState.revealed[index] = true;
+            gameState.guessesMadeInTurn++;
+
+            const type = gameState.types[index];
+            const word = gameState.words[index];
+            addLog(`قام [${gameState.turn === 'blue' ? 'الأزرق' : 'الأحمر'}] بفتح: ${word}`);
+
+            let switchTurn = false;
+
+            if (type === 'assassin') {
+                addLog(`💥 تم كشف الكلمة القاتلة! فوز الفريق الآخر فوراً.`);
+                alert(`خسر الفريق ${gameState.turn === 'blue' ? 'الأزرق' : 'الأحمر'} بفتح الكلمة القاتلة!`);
+                switchTurn = true;
+            } else if (type !== gameState.turn) {
+                addLog(`بطاقة غير خاطئة/منافسة (${type})! ينتهي الدور.`);
+                switchTurn = true;
+            } else if (gameState.maxAllowedGuesses > 0 && gameState.guessesMadeInTurn >= gameState.maxAllowedGuesses) {
+                addLog(`تم الوصول للحد الأقصى للكلمات المحددة التزاماً بتلميح المُلمّح! ينقل الدور تلقائياً.`);
+                switchTurn = true;
+            }
+
+            if (switchTurn) {
+                changeTurn();
+            } else {
+                broadcastState();
+            }
         }
 
-        function addLog(msg, type = 'system') {
+        function sendClue() {
+            const word = document.getElementById('clue-word').value.trim();
+            const countVal = document.getElementById('clue-count-select').value;
+
+            if (!word) return alert('أدخل كلمة التلميح');
+
+            const numCount = countVal === '∞' ? 99 : parseInt(countVal);
+
+            const payload = {
+                word: word,
+                count: countVal,
+                maxAllowed: numCount
+            };
+
+            if (isHost) {
+                applyClue(payload);
+            } else {
+                sendToHost({ type: 'SEND_CLUE', payload });
+            }
+
+            selectedCardsForClue.clear();
+            document.getElementById('clue-word').value = '';
+        }
+
+        function applyClue(payload) {
+            gameState.activeClueWord = payload.word;
+            gameState.activeClueCount = payload.count;
+            gameState.maxAllowedGuesses = payload.maxAllowed;
+            gameState.guessesMadeInTurn = 0;
+
+            addLog(`تلميح جديد من المُلمّح: ${payload.word} (${payload.count})`);
+            broadcastState();
+        }
+
+        function endTurn() {
+            const me = gameState.players.find(p => p.id === myPeerId);
+            if (me && me.team !== gameState.turn) return alert("يمكنك إنهاء الدور فقط في جولة فريقك!");
+
+            if (isHost) {
+                changeTurn();
+            } else {
+                sendToHost({ type: 'END_TURN' });
+            }
+        }
+
+        function changeTurn() {
+            gameState.turn = gameState.turn === 'blue' ? 'red' : 'blue';
+            gameState.guessesMadeInTurn = 0;
+            gameState.maxAllowedGuesses = 0;
+            gameState.activeClueWord = "-";
+            gameState.activeClueCount = 0;
+            gameState.timeLeft = gameState.timerSpeed;
+
+            addLog(`انتقل الدور إلى الفريق: ${gameState.turn === 'blue' ? 'الأزرق' : 'الأحمر'}`);
+            broadcastState();
+        }
+
+        function startTimerLocal() {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (!isHost || gameState.timerSpeed === 0 || !gameState.started) return;
+
+                gameState.timeLeft--;
+                if (gameState.timeLeft <= 0) {
+                    addLog(`⏱️ انتهى وقت الجولة! ينقل الدور تلقائياً.`);
+                    changeTurn();
+                } else {
+                    broadcastTimer();
+                }
+            }, 1000);
+        }
+
+        function resetGame(keepTeams) {
+            if (!isHost) return;
+            if (!keepTeams) {
+                gameState.players.forEach(p => p.role = 'operative');
+            }
+            startGame();
+        }
+
+        function addLog(msg) {
             const log = document.getElementById('game-log');
             const entry = document.createElement('div');
-            entry.className = `log-entry ${type}`;
-            entry.innerText = `[${new Date().toLocaleTimeString('ar-SA')}] ${msg}`;
+            entry.innerText = `> ${msg}`;
             log.appendChild(entry);
             log.scrollTop = log.scrollHeight;
         }
 
-        function createRoom() {
-            peer = new Peer();
-            peer.on('open', (id) => {
-                currentRoomId = id;
-                document.getElementById('room-status').innerText = 'تم إنشاء الغرفة: ' + id;
-                addLog(`تم إنشاء الغرفة برمز: ${id}`, 'system');
-            });
+        function formatTime(seconds) {
+            if (seconds <= 0) return "00:00";
+            const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+            const s = (seconds % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
         }
 
-        function joinRoom() {
-            const targetId = document.getElementById('join-id').value;
-            if (!targetId) return alert('يرجى إدخال رمز الغرفة');
-            const conn = peer.connect(targetId);
-            conn.on('open', () => {
-                document.getElementById('room-status').innerText = 'متصل بالغرفة: ' + targetId;
-                addLog(`تم الإنضمام بنجاح للغرفة ${targetId}`, 'system');
-            });
+        /* إدارة اتصالات P2P */
+        function broadcastState() {
+            initGrid();
+            document.getElementById('timer-display').innerText = formatTime(gameState.timeLeft);
+            connections.forEach(conn => conn.open && conn.send({ type: 'STATE', state: gameState }));
         }
 
-        function sendClue() {
-            const word = document.getElementById('clue-word').value;
-            const count = document.getElementById('clue-count').value;
-            if (!word) return;
-            addLog(`التلميح: ${word} (${count} + 1)`, 'system');
-            document.getElementById('clue-word').value = '';
+        function broadcastTimer() {
+            document.getElementById('timer-display').innerText = formatTime(gameState.timeLeft);
+            connections.forEach(conn => conn.open && conn.send({ type: 'TIMER', timeLeft: gameState.timeLeft }));
         }
 
-        function toggleLockRoom() {
-            addLog('تم تغيير حالة قفل الغرفة من قبل المضيف', 'red');
+        function sendToHost(data) {
+            connections.forEach(conn => conn.open && conn.send(data));
         }
 
-        // تشغيل اللعبة عند التحميل
-        window.onload = initGrid;
+        function handleIncomingData(data, conn) {
+            if (isHost) {
+                if (data.type === 'JOIN') {
+                    gameState.players.push({ id: data.id, name: data.name, team: 'blue', role: 'operative' });
+                    broadcastState();
+                    updateLobbyUI();
+                } else if (data.type === 'UPDATE_PLAYER') {
+                    const idx = gameState.players.findIndex(p => p.id === data.player.id);
+                    if (idx !== -1) gameState.players[idx] = data.player;
+                    broadcastState();
+                    updateLobbyUI();
+                } else if (data.type === 'GUESS') {
+                    processGuess(data.index);
+                } else if (data.type === 'SEND_CLUE') {
+                    applyClue(data.payload);
+                } else if (data.type === 'END_TURN') {
+                    changeTurn();
+                }
+            } else {
+                if (data.type === 'STATE') {
+                    gameState = data.state;
+                    if (gameState.started) {
+                        document.getElementById('lobby-modal').style.display = 'none';
+                        initGrid();
+                    } else {
+                        updateLobbyUI();
+                    }
+                    document.getElementById('timer-display').innerText = formatTime(gameState.timeLeft);
+                } else if (data.type === 'TIMER') {
+                    gameState.timeLeft = data.timeLeft;
+                    document.getElementById('timer-display').innerText = formatTime(gameState.timeLeft);
+                }
+            }
+        }
     </script>
 </body>
 </html>
